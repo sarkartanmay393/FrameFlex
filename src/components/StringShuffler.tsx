@@ -1,7 +1,6 @@
-import { useRef, useState } from "react";
+import { useState } from "react";
 import html2canvas from "html2canvas";
 import { Camera, Clapperboard } from "lucide-react";
-import useGif from "use-gif";
 
 import { Button } from "./ui/button";
 import { Input } from "./ui/input";
@@ -14,9 +13,6 @@ export default function StringShuffler() {
   const [outputString, setOutputString] = useState("");
   const [done, setDone] = useState(false);
   const [step, setStep] = useState(1);
-  const ref = useRef(null);
-
-  useGif(ref, {});
 
   const characters = "abcdefghijklmnopqrstuvwxyz1234567890./;'\"!@%^&*() ".split(
     ""
