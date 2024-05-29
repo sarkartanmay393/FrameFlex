@@ -1,41 +1,47 @@
 import { useRef, useState } from "react";
 import html2canvas from "html2canvas";
 import { Camera, Clapperboard } from "lucide-react";
+import useGif from "use-gif";
 
 import { Button } from "./ui/button";
 import { Input } from "./ui/input";
 import Terminal from "./Terminal";
 
 export default function StringShuffler() {
-  const outputTextRef = useRef("");
+  const [outputText, setOutputText] = useState("");
   const [inputString, setInputString] = useState("");
   const [currentString, setCurrentString] = useState("");
   const [outputString, setOutputString] = useState("");
   const [done, setDone] = useState(false);
   const [step, setStep] = useState(1);
+  const ref = useRef(null);
 
-  const alphabet = "abcdefghijklmnopqrstuvwxyz".split("");
+  useGif(ref, {});
+
+  const characters = "abcdefghijklmnopqrstuvwxyz1234567890./;'\"!@%^&*() ".split(
+    ""
+  );
 
   const syncInputString = async () => {
     const progressivelySetCharacter = (targetChar: string, index: number) => {
-      return new Promise((resolve) => {
+      return new Promise((resolve, reject) => {
         let currentCharIndex = 0;
         const interval = setInterval(() => {
           setCurrentString((prev) => {
             const newString =
               prev.substring(0, index) +
-              alphabet[currentCharIndex] +
+              characters[currentCharIndex] +
               prev.substring(index + 1);
             return newString;
           });
 
-          if (alphabet[currentCharIndex] === targetChar) {
+          if (characters[currentCharIndex] === targetChar) {
             clearInterval(interval);
             resolve(true);
           } else {
             currentCharIndex++;
-            if (currentCharIndex >= alphabet.length) {
-              currentCharIndex = 0;
+            if (currentCharIndex >= characters.length) {
+              reject();
             }
           }
         }, 100);
@@ -45,9 +51,7 @@ export default function StringShuffler() {
     for (let i = 0; i < inputString.length; i++) {
       await progressivelySetCharacter(inputString.charAt(i), i);
     }
-    setOutputString(
-      "Full Stack Web Developer, DevOps Student, love the Open Source community."
-    );
+    setOutputString(outputText);
     setDone(true);
   };
 
@@ -55,7 +59,7 @@ export default function StringShuffler() {
     if (step === 1) {
       setInputString(event.target.value);
     } else {
-      outputTextRef.current = event.target.value;
+      setOutputText(event.target.value);
     }
   };
 
@@ -78,29 +82,41 @@ export default function StringShuffler() {
   // };
 
   const handleSubmit = () => {
-    if (step === 1) {
-      if (inputString.length) setStep(2);
-    } else {
+    if (step === 1 && inputString.length) {
+      setStep(2);
+    } else if (step === 2 && outputText.length) {
       syncInputString();
     }
   };
 
+  const handleKeydown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    // e.preventDefault();
+    e.stopPropagation();
+    if (e.key === "Enter") {
+      handleSubmit();
+    }
+  };
+
   return (
-    <div className="w-full flex flex-col justify-center items-center gap-4 max-w-2xl p-2">
+    <div className="w-full mt-12 flex flex-col justify-center items-center gap-4 max-w-2xl p-2">
       <div className="w-full flex justify-between">
         <div className="flex gap-2 flex-1 max-w-[80%]">
           {step === 1 ? (
             <Input
-              placeholder="Enter your command text"
+              autoFocus
               value={inputString}
               onChange={handleInputChange}
+              onKeyDown={handleKeydown}
+              placeholder="Enter your command text"
               className="border border-gray-400 rounded-md px-3 py-2"
             />
           ) : (
             <Input
-              placeholder="Enter your output text"
-              value={outputTextRef.current}
+              autoFocus
+              value={outputText}
               onChange={handleInputChange}
+              onKeyDown={handleKeydown}
+              placeholder="Enter your output text"
               className="border border-gray-400 rounded-md px-3 py-2"
             />
           )}
